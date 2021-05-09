@@ -25,5 +25,6 @@
     <ClInclude Include="src\include\comms.hpp" />
     <ClInclude Include="src\include\memory.hpp" />
     <ClInclude Include="src\include\ioctl_handler.hpp" />
+    <ClInclude Include="src\include\global.hpp" />
   </ItemGroup>
 </Project>

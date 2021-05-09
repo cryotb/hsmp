@@ -214,6 +214,7 @@
   <ItemGroup>
     <ClInclude Include="src\include\comms.hpp" />
     <ClInclude Include="src\include\definitions.hpp" />
+    <ClInclude Include="src\include\global.hpp" />
     <ClInclude Include="src\include\include.hpp" />
     <ClInclude Include="src\include\ioctl_handler.hpp" />
     <ClInclude Include="src\include\memory.hpp" />

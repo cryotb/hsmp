@@ -22,8 +22,127 @@ namespace comms
 		};
 	}
 
+	struct K64GenericRequestResult_t {
+		INT ErrorCode;
+		DWORD_PTR LastApiErrorCode;
+		BOOLEAN HasHandledError;
+		BOOLEAN DidComplete;
+	};
+
+	struct K64MmpSessionBeginData_t
+	{
+		DWORD32 ProcessId;
+	};
+
+	struct K64CopyVMem_t
+	{
+		DWORD_PTR StartAddress;
+		DWORD_PTR Size;
+		PVOID Buffer;
+	};
+
+	struct K64MemBuf_t
+	{
+		PVOID Pointer;
+		SIZE_T Size;
+	};
+
+	struct K64WideString_t
+	{
+		WCHAR Buffer[512];
+	};
+
+	struct K64StatusInfo_t {
+		INT CurrentState;
+		BOOLEAN ManuallyMapped;
+	};
+
+	struct K64MemBufRequestResult_t : K64GenericRequestResult_t
+	{
+		BOOLEAN RequestSize;
+		SIZE_T BufferLength;
+		PVOID BufferPointer;
+	};
+
+	struct K64KernelModule_t
+	{
+		BOOLEAN WasAssigned;
+		DWORD_PTR ImageBase;
+		DWORD_PTR ImageSize;
+		UCHAR Name[256];
+	};
+
+	struct K64AddressRange_t
+	{
+		DWORD_PTR dwMin;
+		DWORD_PTR dwMax;
+	};
+
+	struct K64ModuleInfo_t
+	{
+		DWORD_PTR dwBase;
+		DWORD_PTR dwSize;
+	};
+
+	struct K64KernelModules_t : K64GenericRequestResult_t
+	{
+		SIZE_T WriteIndex;
+		K64KernelModule_t Modules[1024];
+	};
+
+	struct K64MmpTargetModule_t
+	{
+		BOOLEAN WasAssigned;
+		DWORD_PTR ImageBase;
+		DWORD_PTR ImageSize;
+		PCWCH BaseName[256];
+	};
+
+	struct K64MmpTargetModules_t : K64GenericRequestResult_t
+	{
+		SIZE_T WriteIndex;
+		DWORD_PTR HostBase;
+		K64MmpTargetModule_t Modules[1024];
+	};
+
+	struct K64BooleanExpression_t : K64GenericRequestResult_t
+	{
+		BOOLEAN Result;
+	};
+
+	struct K64AddressExpression_t : K64GenericRequestResult_t
+	{
+		DWORD_PTR Result;
+	};
+
+	struct K64AddressRangeExpression_t : K64GenericRequestResult_t
+	{
+		DWORD_PTR dwMin;
+		DWORD_PTR dwMax;
+	};
+
+	struct K64ModuleInfoExpression_t : K64GenericRequestResult_t
+	{
+		DWORD_PTR dwBase;
+		DWORD_PTR dwSize;
+	};
+
+	enum K64GenericErrors {
+		KGE_NONE,
+		KGE_OBJECT_NOT_FOUND,
+
+		KGE_KNOWN_API_FAILURE, // usually an NT STATUS will be passed.
+		KGE_UNKNOWN_API_FAILURE, // the error is not known, so we have thing to diagnose with.
+		KGE_INVALID_PARAMETERS,
+		KGE_INVALID_REQUEST,
+
+		KGE_ACCESS_DENIED,
+		KGE_REQUEST_REJECTED,
+		KGE_COUNT,
+	};
+
 	EXTERN BOOLEAN Setup(PDRIVER_OBJECT DriverObject, 
-		PDEVICE_OBJECT& pDeviceOut, LPCWSTR szDeviceName, LPCWSTR szSymbolName);
+		PDEVICE_OBJECT& pDeviceOut, PUNICODE_STRING sDeviceName, PUNICODE_STRING sSymbolName);
 	EXTERN VOID Shutdown(PDEVICE_OBJECT DeviceObject);
 
 	EXTERN NTSTATUS OnMajorFunctions(PDEVICE_OBJECT Object, PIRP Irp);

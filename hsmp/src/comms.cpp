@@ -1,28 +1,29 @@
 #include <include.hpp>
 
-BOOLEAN comms::Setup(PDRIVER_OBJECT DriverObject,
-	PDEVICE_OBJECT& pDeviceOut, LPCWSTR szDeviceName, LPCWSTR szSymbolName)
+BOOLEAN comms::Setup(PDRIVER_OBJECT DriverObject, PDEVICE_OBJECT& pDeviceOut, 
+	PUNICODE_STRING sDeviceName, PUNICODE_STRING sSymbolName)
 {
-	UNICODE_STRING sDeviceName{}, sSymbolName{};
+	RtlDuplicateUnicodeString(0, sSymbolName, &m_SymbolName);
 
-	RtlInitUnicodeString(&sDeviceName, szDeviceName);
-	RtlInitUnicodeString(&sSymbolName, szSymbolName);
-
-	RtlInitUnicodeString(&m_SymbolName, szSymbolName);
-
-	CONST AUTO DeviceCreationResult = util::CreateDevice(DriverObject, &pDeviceOut, &sDeviceName,
+	CONST AUTO DeviceCreationResult = util::CreateDevice(DriverObject, &pDeviceOut, sDeviceName,
 		FILE_DEVICE_UNKNOWN, FILE_DEVICE_SECURE_OPEN);
 
 	if (DeviceCreationResult != STATUS_SUCCESS)
+	{
+		HS_LOG_LEGACY("failed device creation: %x.", DeviceCreationResult);
 		return FALSE;
+	}
 
 	pDeviceOut->Flags |= DO_DIRECT_IO;
 	pDeviceOut->Flags &= ~DO_DEVICE_INITIALIZING;
 
-	CONST AUTO SymlinkCreationResult = util::CreateSymLink(&sDeviceName, &sSymbolName);
+	CONST AUTO SymlinkCreationResult = util::CreateSymLink(sDeviceName, sSymbolName);
 
 	if (SymlinkCreationResult != STATUS_SUCCESS)
+	{
+		HS_LOG_LEGACY("failed symlink creation: %x.", SymlinkCreationResult);
 		return FALSE;
+	}
 
 	HS_LOG_LEGACY("comms have been set up.");
 
@@ -31,7 +32,11 @@ BOOLEAN comms::Setup(PDRIVER_OBJECT DriverObject,
 
 VOID comms::Shutdown(PDEVICE_OBJECT DeviceObject)
 {
-	IoDeleteSymbolicLink(&m_SymbolName);
+	CONST AUTO SymlinkDeletetionResult = IoDeleteSymbolicLink(&m_SymbolName);
+
+	if (SymlinkDeletetionResult != STATUS_SUCCESS)
+		HS_LOG_LEGACY("failed symlink deletion: %x.", SymlinkDeletetionResult);
+
 	IoDeleteDevice(DeviceObject);
 
 	HS_LOG_LEGACY("comms have been shut down.");

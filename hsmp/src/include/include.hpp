@@ -13,3 +13,4 @@
 #include "util.hpp"
 #include "ioctl_handler.hpp"
 #include "comms.hpp"
+#include "global.hpp"
