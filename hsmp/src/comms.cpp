@@ -133,6 +133,12 @@ NTSTATUS comms::OnDeviceControl(PDEVICE_OBJECT Object, PIRP Irp)
 	case IOC::Code::GET_STATUS:
 		IOC_CALL_HANDLER(ioctl_handler::GetStatus);
 		break;
+	case IOC::Code::ALLOCATE_POOL:
+		IOC_CALL_HANDLER(ioctl_handler::AllocatePool);
+		break;
+	case IOC::Code::FREE_POOL:
+		IOC_CALL_HANDLER(ioctl_handler::FreePool);
+		break;
 	case IOC::Code::MAP_IO_SPACE:
 		IOC_CALL_HANDLER(ioctl_handler::MapIoSpace);
 		break;

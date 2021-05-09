@@ -58,6 +58,12 @@ namespace comms
 		DWORD32 ProcessId;
 	};
 
+	struct K64AllocatePool_t
+	{
+		INT Type;
+		UINT64 Length;
+	};
+
 	struct K64CopyVMem_t
 	{
 		DWORD_PTR StartAddress;
@@ -234,6 +240,40 @@ public:
 		return sOutput.DidComplete;
 	}
 
+	[[nodiscard]] PVOID AllocatePool(SIZE_T uLength)
+	{
+		assert(m_bActive);
+
+		comms::K64AllocatePool_t sInput{};
+		comms::K64AddressExpression_t sOutput{};
+
+		sInput.Type = 0; /* NonPagedPool */
+		sInput.Length = uLength;
+
+		if (!Util::DeviceControl(m_hDevice, static_cast<DWORD>(comms::IOC::Code::ALLOCATE_POOL),
+			&sInput, &sOutput))
+			return nullptr;
+
+		if (!sOutput.DidComplete)
+			return nullptr;
+		
+		return reinterpret_cast<PVOID>(sOutput.Result);
+	}
+
+	[[nodiscard]] BOOLEAN FreePool(PVOID pPool)
+	{
+		comms::K64AddressExpression_t sInput{};
+		comms::K64GenericRequestResult_t sOutput{};
+
+		sInput.Result = reinterpret_cast<DWORD_PTR>(pPool);
+
+		if (!Util::DeviceControl(m_hDevice, static_cast<DWORD>(comms::IOC::Code::FREE_POOL),
+			&sInput, &sOutput))
+			return FALSE;
+
+		return sOutput.DidComplete;
+	}
+	
 	[[nodiscard]] BOOLEAN UReadVirtualMemory(DWORD32 dwProcessId, 
 		DWORD_PTR dwSource, PVOID pBuffer, SIZE_T uLength)
 	{
@@ -278,6 +318,48 @@ public:
 		return sOutput.DidComplete;
 	}
 
+	[[nodiscard]] BOOLEAN KReadVirtualMemory(DWORD_PTR dwSource, PVOID pBuffer, SIZE_T uLength)
+	{
+		assert(m_bActive);
+
+		comms::K64ReadVirtualMemory_t sInput{};
+		comms::K64GenericRequestResult_t sOutput{};
+
+		sInput.InKernel = TRUE;
+		sInput.ProcessId = 0;
+
+		sInput.Source = dwSource;
+		sInput.Destination = pBuffer;
+		sInput.Length = uLength;
+
+		if (!Util::DeviceControl(m_hDevice, static_cast<DWORD>(comms::IOC::Code::READ_VIRTUAL_MEMORY),
+			&sInput, &sOutput))
+			return FALSE;
+
+		return sOutput.DidComplete;
+	}
+
+	[[nodiscard]] BOOLEAN KWriteVirtualMemory(DWORD_PTR dwDest, PVOID pSource, SIZE_T uLength)
+	{
+		assert(m_bActive);
+
+		comms::K64WriteVirtualMemory_t sInput{};
+		comms::K64GenericRequestResult_t sOutput{};
+
+		sInput.InKernel = TRUE;
+		sInput.ProcessId = 0;
+
+		sInput.Source = pSource;
+		sInput.Destination = dwDest;
+		sInput.Length = uLength;
+
+		if (!Util::DeviceControl(m_hDevice, static_cast<DWORD>(comms::IOC::Code::WRITE_VIRTUAL_MEMORY),
+			&sInput, &sOutput))
+			return FALSE;
+
+		return sOutput.DidComplete;
+	}
+
 	[[nodiscard]] BOOLEAN UFillVirtualMemory(DWORD32 dwProcessId, 
 		DWORD_PTR dwDest, UINT8 uData, SIZE_T uLength)
 	{
@@ -289,6 +371,22 @@ public:
 		RtlFillMemory(pBuffer, uLength, uData);
 
 		const auto bResult = UWriteVirtualMemory(dwProcessId, dwDest, pBuffer, uLength);
+
+		free(pBuffer);
+
+		return bResult;
+	}
+
+	[[nodiscard]] BOOLEAN KFillVirtualMemory(DWORD_PTR dwDest, UINT8 uData, SIZE_T uLength)
+	{
+		auto* const pBuffer = malloc(uLength);
+
+		if (pBuffer == nullptr)
+			return FALSE;
+
+		RtlFillMemory(pBuffer, uLength, uData);
+
+		const auto bResult = KWriteVirtualMemory(dwDest, pBuffer, uLength);
 
 		free(pBuffer);
 

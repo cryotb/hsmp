@@ -42,8 +42,27 @@ int main()
 
 			if(sDriver.GetSystemRoutineAddress(L"MmCopyMemory", &dwSysRoutineAddress))
 			{
-				printf("successfully got system routine address: MmCopyMemory= %p", 
+				printf("successfully got system routine address: MmCopyMemory= %p.\n", 
 					(void*)dwSysRoutineAddress);
+			}
+
+			void* pKernelPool = sDriver.AllocatePool(128);
+
+			if(pKernelPool)
+			{
+				printf("successfully allocated kernel pool at= %p. \n", pKernelPool);
+
+				uint8_t pool_contents_buffer[128] = { 0 };
+
+				assert(sDriver.KFillVirtualMemory((DWORD_PTR)pKernelPool, 0x66, 128));
+				assert(sDriver.KReadVirtualMemory((DWORD_PTR)pKernelPool, &pool_contents_buffer, 128));
+
+				printf("successfully read pool contents: %x.%x.%x.%x.\n",
+					pool_contents_buffer[0], pool_contents_buffer[1], pool_contents_buffer[2],
+					pool_contents_buffer[3]);
+
+				if (sDriver.FreePool(pKernelPool))
+					printf("freed the pool, all ok. \n");
 			}
 		}
 

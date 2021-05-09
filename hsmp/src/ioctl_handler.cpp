@@ -1,8 +1,6 @@
 #include <include.hpp>
 
-VOID ioctl_handler::GetStatus(PIRP Irp,
-	NTSTATUS& IoOpStatus, BOOLEAN IsInputBufferUnused,
-	BOOLEAN IsOutputBufferUnused, PVOID pInputBuffer, PVOID pOutputBuffer)
+VOID ioctl_handler::GetStatus(IOCTL_ARGS)
 {
 	if (IsOutputBufferUnused)
 	{
@@ -21,9 +19,7 @@ VOID ioctl_handler::GetStatus(PIRP Irp,
 	}
 }
 
-VOID ioctl_handler::MapIoSpace(PIRP Irp,
-	NTSTATUS& IoOpStatus, BOOLEAN IsInputBufferUnused,
-	BOOLEAN IsOutputBufferUnused, PVOID pInputBuffer, PVOID pOutputBuffer)
+VOID ioctl_handler::MapIoSpace(IOCTL_ARGS)
 {
 	if (IsInputBufferUnused || IsOutputBufferUnused)
 	{
@@ -44,9 +40,7 @@ VOID ioctl_handler::MapIoSpace(PIRP Irp,
 	pResult->DidComplete = TRUE;
 }
 
-VOID ioctl_handler::UnmapIoSpace(PIRP Irp,
-	NTSTATUS& IoOpStatus, BOOLEAN IsInputBufferUnused,
-	BOOLEAN IsOutputBufferUnused, PVOID pInputBuffer, PVOID pOutputBuffer)
+VOID ioctl_handler::UnmapIoSpace(IOCTL_ARGS)
 {
 	if (IsInputBufferUnused || IsOutputBufferUnused)
 	{
@@ -62,9 +56,45 @@ VOID ioctl_handler::UnmapIoSpace(PIRP Irp,
 	pResult->DidComplete = TRUE;
 }
 
-VOID ioctl_handler::VaToPa(PIRP Irp,
-	NTSTATUS& IoOpStatus, BOOLEAN IsInputBufferUnused,
-	BOOLEAN IsOutputBufferUnused, PVOID pInputBuffer, PVOID pOutputBuffer)
+VOID ioctl_handler::AllocatePool(IOCTL_ARGS)
+{
+	if (IsInputBufferUnused || IsOutputBufferUnused)
+	{
+		IoOpStatus = STATUS_INVALID_PARAMETER;
+		return;
+	}
+
+	AUTO* CONST pArguments = static_cast<comms::K64AllocatePool_t*>(pInputBuffer);
+	AUTO* CONST pResult = static_cast<comms::K64AddressExpression_t*>(pOutputBuffer);
+
+	AUTO* CONST pPool = 
+		ExAllocatePool( static_cast<POOL_TYPE>(pArguments->Type), pArguments->Length );
+
+	if (pPool == nullptr)
+		return;
+
+	pResult->Result = Memory::Address(pPool).Base();
+
+	pResult->DidComplete = TRUE;
+}
+
+VOID ioctl_handler::FreePool(IOCTL_ARGS)
+{
+	if (IsInputBufferUnused || IsOutputBufferUnused)
+	{
+		IoOpStatus = STATUS_INVALID_PARAMETER;
+		return;
+	}
+
+	AUTO* CONST pArguments = static_cast<comms::K64AddressExpression_t*>(pInputBuffer);
+	AUTO* CONST pResult = static_cast<comms::K64GenericRequestResult_t*>(pOutputBuffer);
+
+	ExFreePool( reinterpret_cast<void*>(pArguments->Result) );
+
+	pResult->DidComplete = TRUE;
+}
+
+VOID ioctl_handler::VaToPa(IOCTL_ARGS)
 {
 	if (IsInputBufferUnused || IsOutputBufferUnused)
 	{
@@ -82,9 +112,7 @@ VOID ioctl_handler::VaToPa(PIRP Irp,
 	pResult->DidComplete = TRUE;
 }
 
-VOID ioctl_handler::PaToVa(PIRP Irp,
-	NTSTATUS& IoOpStatus, BOOLEAN IsInputBufferUnused,
-	BOOLEAN IsOutputBufferUnused, PVOID pInputBuffer, PVOID pOutputBuffer)
+VOID ioctl_handler::PaToVa(IOCTL_ARGS)
 {
 	if (IsInputBufferUnused || IsOutputBufferUnused)
 	{
@@ -106,9 +134,7 @@ VOID ioctl_handler::PaToVa(PIRP Irp,
 	pResult->DidComplete = TRUE;
 }
 
-VOID ioctl_handler::GetSystemRoutineAddress(PIRP Irp,
-	NTSTATUS& IoOpStatus, BOOLEAN IsInputBufferUnused,
-	BOOLEAN IsOutputBufferUnused, PVOID pInputBuffer, PVOID pOutputBuffer)
+VOID ioctl_handler::GetSystemRoutineAddress(IOCTL_ARGS)
 {
 	if (IsInputBufferUnused || IsOutputBufferUnused)
 	{
@@ -133,9 +159,7 @@ VOID ioctl_handler::GetSystemRoutineAddress(PIRP Irp,
 	pResult->DidComplete = TRUE;
 }
 
-VOID ioctl_handler::ReadVirtualMemory(PIRP Irp,
-	NTSTATUS& IoOpStatus, BOOLEAN IsInputBufferUnused,
-	BOOLEAN IsOutputBufferUnused, PVOID pInputBuffer, PVOID pOutputBuffer)
+VOID ioctl_handler::ReadVirtualMemory(IOCTL_ARGS)
 {
 	if (IsInputBufferUnused || IsOutputBufferUnused)
 	{
@@ -169,14 +193,12 @@ VOID ioctl_handler::ReadVirtualMemory(PIRP Irp,
 			return;
 
 		ObDereferenceObject(pTargetProcess);
-
+		
 		pResult->DidComplete = TRUE;
 	}
 }
 
-VOID ioctl_handler::WriteVirtualMemory(PIRP Irp,
-	NTSTATUS& IoOpStatus, BOOLEAN IsInputBufferUnused,
-	BOOLEAN IsOutputBufferUnused, PVOID pInputBuffer, PVOID pOutputBuffer)
+VOID ioctl_handler::WriteVirtualMemory(IOCTL_ARGS)
 {
 	if (IsInputBufferUnused || IsOutputBufferUnused)
 	{
@@ -216,16 +238,12 @@ VOID ioctl_handler::WriteVirtualMemory(PIRP Irp,
 	}
 }
 
-VOID ioctl_handler::ReadPhysicalMemory(PIRP Irp,
-	NTSTATUS& IoOpStatus, BOOLEAN IsInputBufferUnused,
-	BOOLEAN IsOutputBufferUnused, PVOID pInputBuffer, PVOID pOutputBuffer)
+VOID ioctl_handler::ReadPhysicalMemory(IOCTL_ARGS)
 {
 
 }
 
-VOID ioctl_handler::WritePhysicalMemory(PIRP Irp,
-	NTSTATUS& IoOpStatus, BOOLEAN IsInputBufferUnused,
-	BOOLEAN IsOutputBufferUnused, PVOID pInputBuffer, PVOID pOutputBuffer)
+VOID ioctl_handler::WritePhysicalMemory(IOCTL_ARGS)
 {
 
 }

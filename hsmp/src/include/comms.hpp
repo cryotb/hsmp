@@ -48,6 +48,12 @@ namespace comms
 		DWORD32 ProcessId;
 	};
 
+	struct K64AllocatePool_t
+	{
+		INT Type;
+		UINT64 Length;
+	};
+
 	struct K64CopyVMem_t
 	{
 		DWORD_PTR StartAddress;
