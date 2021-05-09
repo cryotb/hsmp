@@ -278,6 +278,23 @@ public:
 		return sOutput.DidComplete;
 	}
 
+	[[nodiscard]] BOOLEAN UFillVirtualMemory(DWORD32 dwProcessId, 
+		DWORD_PTR dwDest, UINT8 uData, SIZE_T uLength)
+	{
+		auto* const pBuffer = malloc(uLength);
+
+		if (pBuffer == nullptr)
+			return FALSE;
+
+		RtlFillMemory(pBuffer, uLength, uData);
+
+		const auto bResult = UWriteVirtualMemory(dwProcessId, dwDest, pBuffer, uLength);
+
+		free(pBuffer);
+
+		return bResult;
+	}
+
 	[[nodiscard]] BOOLEAN GetSystemRoutineAddress(const std::wstring& pszName, DWORD_PTR* pdwOut)
 	{
 		assert(m_bActive);
