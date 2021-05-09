@@ -254,6 +254,28 @@ public:
 		return sOutput.DidComplete;
 	}
 
+	[[nodiscard]] BOOLEAN UWriteVirtualMemory(DWORD32 dwProcessId,
+		DWORD_PTR dwDest, PVOID pSource, SIZE_T uLength)
+	{
+		assert(m_bActive);
+
+		comms::K64WriteVirtualMemory_t sInput{};
+		comms::K64GenericRequestResult_t sOutput{};
+
+		sInput.InKernel = FALSE;
+		sInput.ProcessId = dwProcessId;
+
+		sInput.Source = pSource;
+		sInput.Destination = dwDest;
+		sInput.Length = uLength;
+
+		if (!Util::DeviceControl(m_hDevice, static_cast<DWORD>(comms::IOC::Code::WRITE_VIRTUAL_MEMORY),
+			&sInput, &sOutput))
+			return FALSE;
+
+		return sOutput.DidComplete;
+	}
+
 	VOID Release()
 	{
 		if (!m_bActive)

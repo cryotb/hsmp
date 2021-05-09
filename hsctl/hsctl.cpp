@@ -26,6 +26,20 @@ int main()
 				printf("successfully read virtual user memory: %x.%x.%x.%x.\n",
 					my_start_buffer[0], my_start_buffer[1], my_start_buffer[2],
 					my_start_buffer[3]);
+
+				// sb = start buffer base address.
+				const auto my_sb_base = reinterpret_cast<uintptr_t>(&my_start_buffer);
+				uint8_t my_mod_buffer[128] = { 0x00 };
+				
+				for (auto i = 0; i < 128; i++)
+					my_mod_buffer[i] = 0xCC;
+
+				if(sDriver.UWriteVirtualMemory(my_pid, my_sb_base, &my_mod_buffer, 128))
+				{
+					printf("successfully modified virtual user memory: %x.%x.%x.%x.\n",
+						my_start_buffer[0], my_start_buffer[1], my_start_buffer[2],
+						my_start_buffer[3]);
+				}
 			}
 		}
 
