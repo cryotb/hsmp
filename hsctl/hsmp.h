@@ -2,10 +2,20 @@
 
 #define SCYTHE_UNUSED_BUFFER 0xCFD11D1023
 
+namespace Util
+{
+	template < typename _BUFFER_TYPE_IN, typename _BUFFER_TYPE_OUT >
+	inline BOOLEAN DeviceControl(HANDLE hDevice, DWORD dwCode, _BUFFER_TYPE_IN pInBuffer, _BUFFER_TYPE_OUT pOutBuffer)
+	{
+		auto dwBytesReturned = DWORD{};
+
+		return DeviceIoControl(hDevice, dwCode, reinterpret_cast<void*>(pInBuffer), sizeof(_BUFFER_TYPE_IN),
+			reinterpret_cast<void*>(pOutBuffer), sizeof(_BUFFER_TYPE_OUT), &dwBytesReturned, nullptr);
+	}
+}
+
 namespace comms
 {
-	inline UNICODE_STRING m_SymbolName{};
-
 	namespace IOC
 	{
 		constexpr auto TranslateCode(UINT32 dwIn) -> ULONG
@@ -156,25 +166,104 @@ namespace comms
 		DWORD_PTR dwBase;
 		DWORD_PTR dwSize;
 	};
-
-	enum K64GenericErrors {
-		KGE_NONE,
-		KGE_OBJECT_NOT_FOUND,
-
-		KGE_KNOWN_API_FAILURE, // usually an NT STATUS will be passed.
-		KGE_UNKNOWN_API_FAILURE, // the error is not known, so we have thing to diagnose with.
-		KGE_INVALID_PARAMETERS,
-		KGE_INVALID_REQUEST,
-
-		KGE_ACCESS_DENIED,
-		KGE_REQUEST_REJECTED,
-		KGE_COUNT,
-	};
-
-	EXTERN BOOLEAN Setup(PDRIVER_OBJECT DriverObject, 
-		PDEVICE_OBJECT& pDeviceOut, PUNICODE_STRING sDeviceName, PUNICODE_STRING sSymbolName);
-	EXTERN VOID Shutdown(PDEVICE_OBJECT DeviceObject);
-
-	EXTERN NTSTATUS OnMajorFunctions(PDEVICE_OBJECT Object, PIRP Irp);
-	EXTERN NTSTATUS OnDeviceControl(PDEVICE_OBJECT Object, PIRP Irp);
 }
+
+class C_HSCTL
+{
+public:
+	C_HSCTL() = default;
+	~C_HSCTL() = default;
+
+	auto IsActive() CONST { return m_bActive; }
+
+	C_HSCTL(const std::wstring& deviceName)
+	{
+		m_hDevice = CreateFileW(fmt::format(L"\\\\.\\{}", deviceName).c_str(), GENERIC_ALL, 0, nullptr, OPEN_EXISTING,
+			FILE_ATTRIBUTE_SYSTEM, nullptr);
+
+		if (m_hDevice == nullptr || m_hDevice == INVALID_HANDLE_VALUE)
+			return;
+
+		m_bActive = TRUE;
+	}
+
+	[[nodiscard]] BOOLEAN GetStatus(comms::K64StatusInfo_t& sData) CONST
+	{
+		assert(m_bActive);
+
+		if (!Util::DeviceControl(m_hDevice, static_cast<DWORD>(comms::IOC::Code::GET_STATUS), 
+			SCYTHE_UNUSED_BUFFER, &sData))
+			return FALSE;
+
+		return TRUE;
+	}
+
+	[[nodiscard]] BOOLEAN GetVirtualForPhysical(DWORD_PTR dwPhysical, DWORD_PTR* pdwPhysical)
+	{
+		assert(m_bActive);
+
+		comms::K64AddressExpression_t sInput{}, sOutput{};
+
+		sInput.Result = dwPhysical;
+
+		if (!Util::DeviceControl(m_hDevice, static_cast<DWORD>(comms::IOC::Code::VA_TO_PA),
+			&sInput, &sOutput))
+			return FALSE;
+
+		*pdwPhysical = sOutput.Result;
+		
+		return sOutput.DidComplete;
+	}
+
+	[[nodiscard]] BOOLEAN GetPhysicalForVirtual(DWORD_PTR dwVirtual, DWORD_PTR* pdwPhysical)
+	{
+		assert(m_bActive);
+
+		comms::K64AddressExpression_t sInput{}, sOutput{};
+
+		sInput.Result = dwVirtual;
+
+		if (!Util::DeviceControl(m_hDevice, static_cast<DWORD>(comms::IOC::Code::PA_TO_VA),
+			&sInput, &sOutput))
+			return FALSE;
+
+		*pdwPhysical = sOutput.Result;
+
+		return sOutput.DidComplete;
+	}
+
+	[[nodiscard]] BOOLEAN UReadVirtualMemory(DWORD32 dwProcessId, 
+		DWORD_PTR dwSource, PVOID pBuffer, SIZE_T uLength)
+	{
+		assert(m_bActive);
+
+		comms::K64ReadVirtualMemory_t sInput{};
+		comms::K64GenericRequestResult_t sOutput{};
+
+		sInput.InKernel = FALSE;
+		sInput.ProcessId = dwProcessId;
+
+		sInput.Source = dwSource;
+		sInput.Destination = pBuffer;
+		sInput.Length = uLength;
+
+		if (!Util::DeviceControl(m_hDevice, static_cast<DWORD>(comms::IOC::Code::READ_VIRTUAL_MEMORY),
+			&sInput, &sOutput))
+			return FALSE;
+
+		return sOutput.DidComplete;
+	}
+
+	VOID Release()
+	{
+		if (!m_bActive)
+			return;
+
+		m_bActive = FALSE;
+
+		CloseHandle(m_hDevice);
+	}
+private:
+	BOOLEAN m_bActive{};
+	HANDLE m_hDevice{};
+};

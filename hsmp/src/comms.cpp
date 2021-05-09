@@ -133,6 +133,30 @@ NTSTATUS comms::OnDeviceControl(PDEVICE_OBJECT Object, PIRP Irp)
 	case IOC::Code::GET_STATUS:
 		IOC_CALL_HANDLER(ioctl_handler::GetStatus);
 		break;
+	case IOC::Code::MAP_IO_SPACE:
+		IOC_CALL_HANDLER(ioctl_handler::MapIoSpace);
+		break;
+	case IOC::Code::UNMAP_IO_SPACE:
+		IOC_CALL_HANDLER(ioctl_handler::UnmapIoSpace);
+		break;
+	case IOC::Code::VA_TO_PA:
+		IOC_CALL_HANDLER(ioctl_handler::VaToPa);
+		break;
+	case IOC::Code::PA_TO_VA:
+		IOC_CALL_HANDLER(ioctl_handler::PaToVa);
+		break;
+	case IOC::Code::READ_VIRTUAL_MEMORY:
+		IOC_CALL_HANDLER(ioctl_handler::ReadVirtualMemory);
+		break;
+	case IOC::Code::WRITE_VIRTUAL_MEMORY:
+		IOC_CALL_HANDLER(ioctl_handler::WriteVirtualMemory);
+		break;
+	case IOC::Code::READ_PHYSICAL_MEMORY:
+		IOC_CALL_HANDLER(ioctl_handler::ReadPhysicalMemory);
+		break;
+	case IOC::Code::WRITE_PHYSICAL_MEMORY:
+		IOC_CALL_HANDLER(ioctl_handler::WritePhysicalMemory);
+		break;
 	default:
 		HS_LOG_LEGACY(
 			"onDeviceControl -> discarding invalid request, "

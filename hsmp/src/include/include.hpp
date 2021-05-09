@@ -10,6 +10,7 @@
 #include "definitions.hpp"
 #include "memory.hpp"
 #include "xor.hpp"
+#include "kernel.hpp"
 #include "util.hpp"
 #include "ioctl_handler.hpp"
 #include "comms.hpp"

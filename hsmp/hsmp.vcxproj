@@ -217,6 +217,7 @@
     <ClInclude Include="src\include\global.hpp" />
     <ClInclude Include="src\include\include.hpp" />
     <ClInclude Include="src\include\ioctl_handler.hpp" />
+    <ClInclude Include="src\include\kernel.hpp" />
     <ClInclude Include="src\include\memory.hpp" />
     <ClInclude Include="src\include\util.hpp" />
     <ClInclude Include="src\include\xor.hpp" />
