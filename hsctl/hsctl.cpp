@@ -41,6 +41,14 @@ int main()
 						my_start_buffer[3]);
 				}
 			}
+
+			DWORD_PTR dwSysRoutineAddress = 0;
+
+			if(sDriver.GetSystemRoutineAddress(L"MmCopyMemory", &dwSysRoutineAddress))
+			{
+				printf("successfully got system routine address: MmCopyMemory= %p", 
+					(void*)dwSysRoutineAddress);
+			}
 		}
 
 		sDriver.Release();

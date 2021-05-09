@@ -41,6 +41,8 @@ namespace comms
 
 			READ_PHYSICAL_MEMORY = TranslateCode(0x809),
 			WRITE_PHYSICAL_MEMORY = TranslateCode(0x810),
+
+			GET_SYSTEM_ROUTINE_ADDRESS = TranslateCode(0x811),
 		};
 	}
 
@@ -272,6 +274,24 @@ public:
 		if (!Util::DeviceControl(m_hDevice, static_cast<DWORD>(comms::IOC::Code::WRITE_VIRTUAL_MEMORY),
 			&sInput, &sOutput))
 			return FALSE;
+
+		return sOutput.DidComplete;
+	}
+
+	[[nodiscard]] BOOLEAN GetSystemRoutineAddress(const std::wstring& pszName, DWORD_PTR* pdwOut)
+	{
+		assert(m_bActive);
+
+		comms::K64WideString_t sInput{};
+		comms::K64AddressExpression_t sOutput{};
+
+		wcscpy_s(sInput.Buffer, pszName.c_str());
+		
+		if (!Util::DeviceControl(m_hDevice, static_cast<DWORD>(comms::IOC::Code::GET_SYSTEM_ROUTINE_ADDRESS),
+			&sInput, &sOutput))
+			return FALSE;
+
+		*pdwOut = sOutput.Result;
 
 		return sOutput.DidComplete;
 	}

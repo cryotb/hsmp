@@ -106,6 +106,33 @@ VOID ioctl_handler::PaToVa(PIRP Irp,
 	pResult->DidComplete = TRUE;
 }
 
+VOID ioctl_handler::GetSystemRoutineAddress(PIRP Irp,
+	NTSTATUS& IoOpStatus, BOOLEAN IsInputBufferUnused,
+	BOOLEAN IsOutputBufferUnused, PVOID pInputBuffer, PVOID pOutputBuffer)
+{
+	if (IsInputBufferUnused || IsOutputBufferUnused)
+	{
+		IoOpStatus = STATUS_INVALID_PARAMETER;
+		return;
+	}
+
+	AUTO* CONST pArguments = static_cast<comms::K64WideString_t*>(pInputBuffer);
+	AUTO* CONST pResult = static_cast<comms::K64AddressExpression_t*>(pOutputBuffer);
+
+	UNICODE_STRING sSystemRoutineName{};
+	RtlInitUnicodeString(&sSystemRoutineName, pArguments->Buffer);
+
+	pResult->Result = 
+		Memory::Address(
+			MmGetSystemRoutineAddress(&sSystemRoutineName)
+		).Base();
+
+	if (!pResult->Result)
+		return;
+
+	pResult->DidComplete = TRUE;
+}
+
 VOID ioctl_handler::ReadVirtualMemory(PIRP Irp,
 	NTSTATUS& IoOpStatus, BOOLEAN IsInputBufferUnused,
 	BOOLEAN IsOutputBufferUnused, PVOID pInputBuffer, PVOID pOutputBuffer)

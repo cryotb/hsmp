@@ -31,6 +31,8 @@ namespace comms
 
 			READ_PHYSICAL_MEMORY = TranslateCode(0x809),
 			WRITE_PHYSICAL_MEMORY = TranslateCode(0x810),
+
+			GET_SYSTEM_ROUTINE_ADDRESS = TranslateCode(0x811),
 		};
 	}
 
