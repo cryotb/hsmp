@@ -247,3 +247,30 @@ VOID ioctl_handler::WritePhysicalMemory(IOCTL_ARGS)
 {
 
 }
+
+VOID ioctl_handler::CallEntryPoint(IOCTL_ARGS)
+{
+	if (IsInputBufferUnused || IsOutputBufferUnused)
+	{
+		IoOpStatus = STATUS_INVALID_PARAMETER;
+		return;
+	}
+
+	using fnEntryPoint = NTSTATUS(PVOID, PVOID);
+
+	AUTO* CONST pArguments = static_cast<comms::K64CallEntryPoint_t*>(pInputBuffer);
+	AUTO* CONST pResult = static_cast<comms::K64CallEntryPointResult_t*>(pOutputBuffer);
+
+	auto* const pfnEntryPoint = Memory::Address(pArguments->Address)
+		.As<fnEntryPoint*>();
+
+	__try
+	{
+		pResult->ReturnValue = pfnEntryPoint(pArguments->Rcx, pArguments->Rdx);
+	} __except(EXCEPTION_EXECUTE_HANDLER)
+	{
+		return;
+	}
+
+	pResult->DidComplete = TRUE;
+}

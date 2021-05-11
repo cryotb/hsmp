@@ -43,6 +43,8 @@ namespace comms
 			WRITE_PHYSICAL_MEMORY = TranslateCode(0x810),
 
 			GET_SYSTEM_ROUTINE_ADDRESS = TranslateCode(0x811),
+
+			CALL_ENTRY_POINT = TranslateCode(0x812),
 		};
 	}
 
@@ -51,6 +53,16 @@ namespace comms
 		DWORD_PTR LastApiErrorCode;
 		BOOLEAN HasHandledError;
 		BOOLEAN DidComplete;
+	};
+
+	struct K64CallEntryPoint_t
+	{
+		DWORD_PTR Address;
+
+		PVOID Rcx;
+		PVOID Rdx;
+		PVOID R8;
+		PVOID R9;
 	};
 
 	struct K64MmpSessionBeginData_t
@@ -110,6 +122,11 @@ namespace comms
 		BOOLEAN RequestSize;
 		SIZE_T BufferLength;
 		PVOID BufferPointer;
+	};
+
+	struct K64CallEntryPointResult_t : K64GenericRequestResult_t
+	{
+		NTSTATUS ReturnValue;
 	};
 
 	struct K64KernelModule_t
@@ -173,6 +190,20 @@ namespace comms
 	{
 		DWORD_PTR dwBase;
 		DWORD_PTR dwSize;
+	};
+
+	enum K64GenericErrors {
+		KGE_NONE,
+		KGE_OBJECT_NOT_FOUND,
+
+		KGE_KNOWN_API_FAILURE, // usually an NT STATUS will be passed.
+		KGE_UNKNOWN_API_FAILURE, // the error is not known, so we have thing to diagnose with.
+		KGE_INVALID_PARAMETERS,
+		KGE_INVALID_REQUEST,
+
+		KGE_ACCESS_DENIED,
+		KGE_REQUEST_REJECTED,
+		KGE_COUNT,
 	};
 }
 

@@ -189,10 +189,21 @@
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>include.hpp</PrecompiledHeaderFile>
+      <DebugInformationFormat>
+      </DebugInformationFormat>
+      <Optimization>Disabled</Optimization>
     </ClCompile>
     <Inf>
       <SpecifyArchitecture>false</SpecifyArchitecture>
     </Inf>
+    <Link>
+      <GenerateDebugInformation>false</GenerateDebugInformation>
+      <ProgramDatabaseFile>
+      </ProgramDatabaseFile>
+      <ProfileGuidedDatabase />
+      <AssemblyDebug>false</AssemblyDebug>
+      <Profile>false</Profile>
+    </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
     <Inf Include="hsmp.inf" />

@@ -22,5 +22,6 @@ namespace ioctl_handler
 
 	EXTERN VOID ReadPhysicalMemory(IOCTL_ARGS);
 	EXTERN VOID WritePhysicalMemory(IOCTL_ARGS);
-
+	
+	EXTERN VOID CallEntryPoint(IOCTL_ARGS);
 }
