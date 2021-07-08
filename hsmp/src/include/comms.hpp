@@ -35,6 +35,10 @@ namespace comms
 			GET_SYSTEM_ROUTINE_ADDRESS = TranslateCode(0x811),
 
 			CALL_ENTRY_POINT = TranslateCode(0x812),
+
+			GET_SYSTEM_ROUTINE_ADDRESS_EX = TranslateCode(0x813),
+
+			ALLOCATE_MANUAL_MEMORY = TranslateCode(0x814),
 		};
 	}
 
@@ -66,6 +70,11 @@ namespace comms
 		UINT64 Length;
 	};
 
+	struct K64AllocateManualMemory_t
+	{
+		UINT64 Length;
+	};
+
 	struct K64CopyVMem_t
 	{
 		DWORD_PTR StartAddress;
@@ -89,6 +98,12 @@ namespace comms
 		PVOID Source;
 		DWORD_PTR Destination;
 		UINT64 Length;
+	};
+
+	struct K64GetSystemRoutineEx_t
+	{
+		CHAR RoutineName[512];
+		PVOID ModuleBase;
 	};
 
 	struct K64MemBuf_t

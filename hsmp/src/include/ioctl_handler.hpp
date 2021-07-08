@@ -16,6 +16,7 @@ namespace ioctl_handler
 	EXTERN VOID PaToVa(IOCTL_ARGS);
 
 	EXTERN VOID GetSystemRoutineAddress(IOCTL_ARGS);
+	EXTERN VOID GetSystemRoutineAddressEx(IOCTL_ARGS);
 
 	EXTERN VOID ReadVirtualMemory(IOCTL_ARGS);
 	EXTERN VOID WriteVirtualMemory(IOCTL_ARGS);
@@ -24,4 +25,5 @@ namespace ioctl_handler
 	EXTERN VOID WritePhysicalMemory(IOCTL_ARGS);
 	
 	EXTERN VOID CallEntryPoint(IOCTL_ARGS);
+	EXTERN VOID AllocateManualMemory(IOCTL_ARGS);
 }

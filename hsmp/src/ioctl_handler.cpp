@@ -68,7 +68,7 @@ VOID ioctl_handler::AllocatePool(IOCTL_ARGS)
 	AUTO* CONST pResult = static_cast<comms::K64AddressExpression_t*>(pOutputBuffer);
 
 	AUTO* CONST pPool = 
-		ExAllocatePool( static_cast<POOL_TYPE>(pArguments->Type), pArguments->Length );
+		ExAllocatePoolWithTag( static_cast<POOL_TYPE>(pArguments->Type), pArguments->Length, 'pmsH' );
 
 	if (pPool == nullptr)
 		return;
@@ -89,7 +89,7 @@ VOID ioctl_handler::FreePool(IOCTL_ARGS)
 	AUTO* CONST pArguments = static_cast<comms::K64AddressExpression_t*>(pInputBuffer);
 	AUTO* CONST pResult = static_cast<comms::K64GenericRequestResult_t*>(pOutputBuffer);
 
-	ExFreePool( reinterpret_cast<void*>(pArguments->Result) );
+	ExFreePoolWithTag( reinterpret_cast<void*>(pArguments->Result), 'pmsH' );
 
 	pResult->DidComplete = TRUE;
 }
@@ -151,6 +151,28 @@ VOID ioctl_handler::GetSystemRoutineAddress(IOCTL_ARGS)
 	pResult->Result = 
 		Memory::Address(
 			MmGetSystemRoutineAddress(&sSystemRoutineName)
+		).Base();
+
+	if (!pResult->Result)
+		return;
+
+	pResult->DidComplete = TRUE;
+}
+
+VOID ioctl_handler::GetSystemRoutineAddressEx(IOCTL_ARGS)
+{
+	if (IsInputBufferUnused || IsOutputBufferUnused)
+	{
+		IoOpStatus = STATUS_INVALID_PARAMETER;
+		return;
+	}
+
+	AUTO* CONST pArguments = static_cast<comms::K64GetSystemRoutineEx_t*>(pInputBuffer);
+	AUTO* CONST pResult = static_cast<comms::K64AddressExpression_t*>(pOutputBuffer);
+
+	pResult->Result =
+		Memory::Address(
+			RtlFindExportedRoutineByName(pArguments->ModuleBase, pArguments->RoutineName)
 		).Base();
 
 	if (!pResult->Result)
@@ -271,6 +293,27 @@ VOID ioctl_handler::CallEntryPoint(IOCTL_ARGS)
 	{
 		return;
 	}
+
+	pResult->DidComplete = TRUE;
+}
+
+VOID ioctl_handler::AllocateManualMemory(IOCTL_ARGS)
+{
+	if (IsInputBufferUnused || IsOutputBufferUnused)
+	{
+		IoOpStatus = STATUS_INVALID_PARAMETER;
+		return;
+	}
+
+	AUTO* CONST pArguments = static_cast<comms::K64AllocateManualMemory_t*>(pInputBuffer);
+	AUTO* CONST pResult = static_cast<comms::K64AddressExpression_t*>(pOutputBuffer);
+
+	AUTO* CONST pMemory = util::allocate_virtual_pages(pArguments->Length);
+
+	if (pMemory == nullptr)
+		return;
+
+	pResult->Result = Memory::Address(pMemory).Base();
 
 	pResult->DidComplete = TRUE;
 }

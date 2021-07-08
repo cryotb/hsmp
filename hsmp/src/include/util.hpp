@@ -33,4 +33,45 @@ namespace util
 	{
 		return NT_SUCCESS(PsLookupProcessByProcessId(reinterpret_cast<HANDLE>(dwId), peOut));
 	}
+
+	inline auto allocate_physical_pages(SIZE_T length) -> PMDL
+	{
+		PHYSICAL_ADDRESS pages_alloc{}, pages_max{}, pages_skip{};
+
+		pages_alloc.QuadPart = 0ull;
+		pages_max.QuadPart = ~0ull;
+		pages_skip.QuadPart = 0ull;
+
+		return MmAllocatePagesForMdl(
+			pages_alloc, pages_max,
+			pages_skip, length
+		);
+	}
+
+	inline auto allocate_virtual_pages(SIZE_T length) -> PVOID
+	{
+		auto* result = PVOID{};
+		auto* const mdl = allocate_physical_pages(length);
+
+		if (mdl == nullptr)
+			return nullptr;
+
+		__try
+		{
+			result = MmMapLockedPagesSpecifyCache(mdl, KernelMode,
+				MmNonCached, NULL, FALSE, NormalPagePriority);
+
+			if (result &&
+				!NT_SUCCESS(MmProtectMdlSystemAddress(
+					mdl, PAGE_EXECUTE_READWRITE
+				)))
+				return nullptr;
+		}
+		__except (EXCEPTION_EXECUTE_HANDLER)
+		{
+			return nullptr;
+		}
+
+		return result;
+	}
 }

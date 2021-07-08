@@ -169,6 +169,12 @@ NTSTATUS comms::OnDeviceControl(PDEVICE_OBJECT Object, PIRP Irp)
 	case IOC::Code::CALL_ENTRY_POINT:
 		IOC_CALL_HANDLER(ioctl_handler::CallEntryPoint);
 		break;
+	case IOC::Code::GET_SYSTEM_ROUTINE_ADDRESS_EX:
+		IOC_CALL_HANDLER(ioctl_handler::GetSystemRoutineAddressEx);
+		break;
+	case IOC::Code::ALLOCATE_MANUAL_MEMORY:
+		IOC_CALL_HANDLER(ioctl_handler::AllocateManualMemory);
+		break;
 	default:
 		HS_LOG_LEGACY(
 			"onDeviceControl -> discarding invalid request, "
