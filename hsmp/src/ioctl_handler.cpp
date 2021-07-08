@@ -58,6 +58,9 @@ VOID ioctl_handler::UnmapIoSpace(IOCTL_ARGS)
 
 VOID ioctl_handler::AllocatePool(IOCTL_ARGS)
 {
+	return;
+
+
 	if (IsInputBufferUnused || IsOutputBufferUnused)
 	{
 		IoOpStatus = STATUS_INVALID_PARAMETER;
@@ -80,6 +83,9 @@ VOID ioctl_handler::AllocatePool(IOCTL_ARGS)
 
 VOID ioctl_handler::FreePool(IOCTL_ARGS)
 {
+	return;
+
+
 	if (IsInputBufferUnused || IsOutputBufferUnused)
 	{
 		IoOpStatus = STATUS_INVALID_PARAMETER;

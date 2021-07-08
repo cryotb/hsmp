@@ -58,14 +58,7 @@ namespace util
 
 		__try
 		{
-			result = MmMapLockedPagesSpecifyCache(mdl, KernelMode,
-				MmNonCached, NULL, FALSE, NormalPagePriority);
-
-			if (result &&
-				!NT_SUCCESS(MmProtectMdlSystemAddress(
-					mdl, PAGE_EXECUTE_READWRITE
-				)))
-				return nullptr;
+			result = MmGetSystemAddressForMdlSafe(mdl, NormalPagePriority);
 		}
 		__except (EXCEPTION_EXECUTE_HANDLER)
 		{
