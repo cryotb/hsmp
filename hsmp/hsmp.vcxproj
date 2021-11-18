@@ -172,10 +172,14 @@
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>include.hpp</PrecompiledHeaderFile>
+      <ControlFlowGuard>false</ControlFlowGuard>
     </ClCompile>
     <Inf>
       <SpecifyArchitecture>false</SpecifyArchitecture>
     </Inf>
+    <Link>
+      <GenerateMapFile>true</GenerateMapFile>
+    </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
@@ -192,6 +196,7 @@
       <DebugInformationFormat>
       </DebugInformationFormat>
       <Optimization>Disabled</Optimization>
+      <ControlFlowGuard>false</ControlFlowGuard>
     </ClCompile>
     <Inf>
       <SpecifyArchitecture>false</SpecifyArchitecture>
@@ -203,6 +208,7 @@
       <ProfileGuidedDatabase />
       <AssemblyDebug>false</AssemblyDebug>
       <Profile>false</Profile>
+      <GenerateMapFile>true</GenerateMapFile>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
