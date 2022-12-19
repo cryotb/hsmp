@@ -7,3 +7,7 @@ The allocated memory is freely enumerable by anyone, and there's also a couple o
 <br>
 The HSCTL component will perform a few checks in order to determine if the driver functions properly.<br>
 Keep in mind this is 1½ years old, and has not been written for production.<br>
+# References
+ - UC
+ - definitely some other fellow github repos!
+ 
